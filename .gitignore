@@ -1,0 +1,31 @@
+# Project #
+############
+composer.lock
+.php_cs.cache
+var/
+
+# Tests #
+############
+**/coverage.clover.xml
+.humbug.log
+tests/build/container/tst/xdebug.ini
+
+# Composer #
+############
+composer.phar
+vendor
+
+# PHPStorm #
+############
+.idea
+
+# OS generated files #
+######################
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Icon?
+ehthumbs.db
+Thumbs.db

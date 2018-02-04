@@ -1,0 +1,22 @@
+#!/usr/bin/env php
+<?php
+
+$rootDir = __DIR__ . '/..';
+$argumentList = $argv;
+unset($argumentList[0]);
+$returnVal = 0;
+
+$env = getenv('ENV') ?: 'tst';
+$command = 'php vendor/bin/phpunit ' . implode(' ', $argumentList);
+switch ($env) {
+    case 'ci':
+        $env = 'tst';
+    case 'tst':
+        system("docker-compose -f $rootDir/tests/build/container/$env/docker-compose.yml run app " . $command, $returnVal);
+        system("docker-compose -f $rootDir/tests/build/container/$env/docker-compose.yml down");
+        break;
+    default:
+        system($command, $returnVal);
+}
+
+exit($returnVal);

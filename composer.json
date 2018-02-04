@@ -1,0 +1,48 @@
+{
+    "name": "hgraca/doctrine-test-db-regeneration-bundle",
+    "license": "MIT",
+    "type": "library",
+    "description": "Symfony 2/3/4 bundle to generate the test DB (if needed) for every test suite run or test method run.",
+    "authors": [
+        {
+            "name": "Herberto Graça",
+            "email": "herberto.graca@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Hgraca\\DoctrineTestDbRegenerationBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Hgraca\\DoctrineTestDbRegenerationBundle\\Test\\": "tests/src/",
+            "Hgraca\\DoctrineTestDbRegenerationBundle\\TestLib\\": "tests/lib/"
+        }
+    },
+    "require": {
+        "doctrine/dbal": "^2",
+        "doctrine/orm": "^2",
+        "doctrine/doctrine-bundle": "^1",
+        "doctrine/data-fixtures": "^1.3",
+        "doctrine/doctrine-fixtures-bundle": "^3",
+        "php": "^7.1",
+        "roave/security-advisories": "dev-master",
+        "symfony/framework-bundle": "^2.7|^3.0|^4.0"
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^2.0",
+        "mockery/mockery": "v1.0.0-alpha1",
+        "phpunit/php-code-coverage": "^5",
+        "phpunit/phpunit": "^6.0"
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "1.0.x-dev"
+        }
+    },
+    "config": {
+        "bin-dir": "vendor/bin",
+        "preferred-install": "dist"
+    }
+}

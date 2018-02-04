@@ -1,0 +1,11 @@
+version: '3.0'
+
+services:
+  app:
+    container_name: app
+    image: "hgraca/doctrine-test-db-regeneration-bundle:tst.php_7_1"
+    working_dir: /opt/app
+    volumes:
+      - ../../../../:/opt/app
+    environment:
+      PHP_IDE_CONFIG: "serverName=docker" # This is needed to debug from CLI (ie. while running tests)

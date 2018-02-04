@@ -1,0 +1,21 @@
+#!/usr/bin/env php
+<?php
+
+$rootDir = __DIR__ . '/..';
+$returnVal = 0;
+
+$env = getenv('ENV') ?: 'tst';
+$coverageReportPath = 'var/coverage.clover.xml';
+$command = "php -dzend_extension=xdebug.so vendor/bin/phpunit --coverage-text --coverage-clover=$coverageReportPath";
+switch ($env) {
+    case 'ci':
+        $env = 'tst';
+    case 'tst':
+        system("docker-compose -f $rootDir/tests/build/container/$env/docker-compose.yml run app " . $command, $returnVal);
+        system("docker-compose -f $rootDir/tests/build/container/$env/docker-compose.yml down");
+        break;
+    default:
+        system($command, $returnVal);
+}
+
+exit($returnVal);
