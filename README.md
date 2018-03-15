@@ -145,7 +145,7 @@ make build-container-tst
 
 [Author]: http://img.shields.io/badge/author-@hgraca-blue.svg?style=flat-square
 [License]: https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square
-[Version]: https://img.shields.io/github/release/hgraca/php-doctrine-test-db-regeneration-bundle.svg?style=flat-square
+[Version]: https://img.shields.io/github/release/hgraca/doctrine-test-db-regeneration-bundle.svg?style=flat-square
 [Downloads]: https://img.shields.io/packagist/dt/hgraca/doctrine-test-db-regeneration-bundle.svg?style=flat-square
 
 [Build]: https://scrutinizer-ci.com/g/hgraca/doctrine-test-db-regeneration-bundle/badges/build.png?b=master
