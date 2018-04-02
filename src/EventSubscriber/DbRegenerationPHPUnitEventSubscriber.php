@@ -4,12 +4,43 @@ declare(strict_types=1);
 
 namespace Hgraca\DoctrineTestDbRegenerationBundle\EventSubscriber;
 
+use Exception;
 use Hgraca\DoctrineTestDbRegenerationBundle\Doctrine\SchemaManager;
 use Hgraca\DoctrineTestDbRegenerationBundle\Doctrine\SchemaManagerInterface;
 use PHPUnit\Framework\TestListener;
 use PHPUnit\Framework\TestListenerDefaultImplementation;
 
-if (!class_exists('\PHPUnit_Framework_BaseTestListener')) {
+if (
+    class_exists('PHPUnit_Runner_Version')
+    && version_compare(PHPUnit_Runner_Version::id(), '5', '>=')
+    && version_compare(PHPUnit_Runner_Version::id(), '6', '<')
+) {
+    // PHPUnit 5
+
+    /**
+     * @codeCoverageIgnore We can never cover both of these classes, although we do cover the trait
+     */
+    class DbRegenerationPHPUnitEventSubscriber extends \PHPUnit_Framework_BaseTestListener
+    {
+        use DbRegenerationPHPUnitEventSubscriberTrait;
+
+        /**
+         * @throws \Exception
+         */
+        public function startTest(\PHPUnit_Framework_Test $test): void
+        {
+            $this->onTestStart($test);
+        }
+
+        /**
+         * @throws \Exception
+         */
+        public function endTest(\PHPUnit_Framework_Test $test, $time): void
+        {
+            $this->onEndTest($test);
+        }
+    }
+} elseif (class_exists('\PHPUnit\Runner\Version') && version_compare(\PHPUnit\Runner\Version::id(), '7', '<')) {
     // PHPUnit 6+
 
     /**
@@ -36,20 +67,21 @@ if (!class_exists('\PHPUnit_Framework_BaseTestListener')) {
             $this->onEndTest($test);
         }
     }
-} else {
-    // PHPUnit 5
+} elseif (class_exists('\PHPUnit\Runner\Version') && version_compare(\PHPUnit\Runner\Version::id(), '7', '>=')) {
+    // PHPUnit 7+
 
     /**
      * @codeCoverageIgnore We can never cover both of these classes, although we do cover the trait
      */
-    class DbRegenerationPHPUnitEventSubscriber extends \PHPUnit_Framework_BaseTestListener
+    class DbRegenerationPHPUnitEventSubscriber implements TestListener
     {
-        use DbRegenerationPHPUnitEventSubscriberTrait;
+        use TestListenerDefaultImplementation,
+            DbRegenerationPHPUnitEventSubscriberTrait;
 
         /**
          * @throws \Exception
          */
-        public function startTest(\PHPUnit_Framework_Test $test): void
+        public function startTest(\PHPUnit\Framework\Test $test): void
         {
             $this->onTestStart($test);
         }
@@ -57,11 +89,13 @@ if (!class_exists('\PHPUnit_Framework_BaseTestListener')) {
         /**
          * @throws \Exception
          */
-        public function endTest(\PHPUnit_Framework_Test $test, $time): void
+        public function endTest(\PHPUnit\Framework\Test $test, float $time): void
         {
             $this->onEndTest($test);
         }
     }
+} else {
+    throw new Exception('DoctrineTestDbRegenerationBundle doesn\'t work with such an old version of PHPUnit.');
 }
 
 trait DbRegenerationPHPUnitEventSubscriberTrait
