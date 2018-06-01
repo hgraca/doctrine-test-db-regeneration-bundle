@@ -16,6 +16,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\SchemaTool;
 use Hgraca\DoctrineTestDbRegenerationBundle\DependencyInjection\Configuration;
 use Hgraca\DoctrineTestDbRegenerationBundle\Doctrine\FixtureList;
+use Hgraca\DoctrineTestDbRegenerationBundle\Doctrine\MigrationsExecutorInterface;
 use Hgraca\DoctrineTestDbRegenerationBundle\Doctrine\SchemaManager;
 use Hgraca\DoctrineTestDbRegenerationBundle\StdLib\Filesystem;
 use Hgraca\DoctrineTestDbRegenerationBundle\StdLib\Md5;
@@ -123,10 +124,17 @@ final class SchemaManagerTest extends AbstractUnitTest
      * @test
      *
      * @throws \ReflectionException
+     * @throws \ErrorException
      */
     public function constructUsingTestContainer(): void
     {
-        $schemaManager = SchemaManager::constructUsingTestContainer($this->testContainer);
+        $schemaManager = SchemaManager::constructUsingTestContainer(
+            $this->testContainer,
+            null,
+            null,
+            null,
+            Mockery::spy(MigrationsExecutorInterface::class)
+        );
 
         /** @var FixtureList $fixtureList */
         $fixtureList = ReflectionHelper::getProtectedProperty($schemaManager, 'fixtureList');
@@ -144,6 +152,8 @@ final class SchemaManagerTest extends AbstractUnitTest
 
     /**
      * @test
+     *
+     * @throws \ErrorException
      */
     public function createTestDatabaseBackup_does_not_create_if_it_already_exists(): void
     {
@@ -152,13 +162,20 @@ final class SchemaManagerTest extends AbstractUnitTest
         $this->mockDbBackupExists();
         $this->mockEntitiesMetadata();
 
-        $schemaManager = SchemaManager::constructUsingTestContainer($this->testContainer);
+        $schemaManager = SchemaManager::constructUsingTestContainer(
+            $this->testContainer,
+            null,
+            null,
+            null,
+            Mockery::spy(MigrationsExecutorInterface::class)
+        );
         $schemaManager->createTestDatabaseBackup($shouldReuseExistingDbBkp);
     }
 
     /**
      * @test
      *
+     * @throws \ErrorException
      * @throws \ReflectionException
      */
     public function createTestDatabaseBackup_creates_if_it_does_not_exist(): void
@@ -174,7 +191,8 @@ final class SchemaManagerTest extends AbstractUnitTest
             $this->testContainer,
             $this->expectSchemaToolToCreateCleanDb($this->mockEntitiesMetadata()),
             $this->expectOrmExecutorToCreateFixturesInDb(),
-            $this->expectReferenceRepositoryToCreateFixturesBkpFile()
+            $this->expectReferenceRepositoryToCreateFixturesBkpFile(),
+            Mockery::spy(MigrationsExecutorInterface::class)
         );
         $schemaManager->createTestDatabaseBackup($shouldReuseExistingDbBkp);
         $this->assertEventManagerContainsOriginalListeners();
@@ -183,6 +201,7 @@ final class SchemaManagerTest extends AbstractUnitTest
     /**
      * @test
      *
+     * @throws \ErrorException
      * @throws \ReflectionException
      */
     public function createTestDatabaseBackup_creates_if_it_exists_but_should_not_reuse(): void
@@ -198,7 +217,8 @@ final class SchemaManagerTest extends AbstractUnitTest
             $this->testContainer,
             $this->expectSchemaToolToCreateCleanDb($this->mockEntitiesMetadata()),
             $this->expectOrmExecutorToCreateFixturesInDb(),
-            $this->expectReferenceRepositoryToCreateFixturesBkpFile()
+            $this->expectReferenceRepositoryToCreateFixturesBkpFile(),
+            Mockery::spy(MigrationsExecutorInterface::class)
         );
         $schemaManager->createTestDatabaseBackup($shouldReuseExistingDbBkp);
         $this->assertEventManagerContainsOriginalListeners();
@@ -206,6 +226,37 @@ final class SchemaManagerTest extends AbstractUnitTest
 
     /**
      * @test
+     *
+     * @throws \ErrorException
+     * @throws \ReflectionException
+     */
+    public function createTestDatabaseBackup_applies_migrations(): void
+    {
+        $shouldReuseExistingDbBkp = false;
+        $this->mockConnectionIsSetupWithFilePath();
+        $this->mockDbBackupExists();
+        $this->expectEventManagerToDeliverListeners();
+
+        $this->mockMovingDbBackupFileSucceeds();
+
+        $migrationsExecutorSpy = Mockery::spy(MigrationsExecutorInterface::class);
+        $schemaManager = SchemaManager::constructUsingTestContainer(
+            $this->testContainer,
+            $this->expectSchemaToolToCreateCleanDb($this->mockEntitiesMetadata()),
+            $this->expectOrmExecutorToCreateFixturesInDb(),
+            $this->expectReferenceRepositoryToCreateFixturesBkpFile(),
+            $migrationsExecutorSpy
+        );
+        $migrationList = ['1', '2', '3'];
+        $schemaManager->createTestDatabaseBackup($shouldReuseExistingDbBkp, $migrationList);
+        $migrationsExecutorSpy->shouldHaveReceived('execute', $migrationList);
+        $this->assertEventManagerContainsOriginalListeners();
+    }
+
+    /**
+     * @test
+     *
+     * @throws \ErrorException
      */
     public function restoreTestDatabase(): void
     {
@@ -222,13 +273,21 @@ final class SchemaManagerTest extends AbstractUnitTest
             }
         );
 
-        $schemaManager = SchemaManager::constructUsingTestContainer($this->testContainer);
+        $schemaManager = SchemaManager::constructUsingTestContainer(
+            $this->testContainer,
+            null,
+            null,
+            null,
+            Mockery::spy(MigrationsExecutorInterface::class)
+        );
         $schemaManager->restoreTestDatabase();
     }
 
     /**
      * @test
      * @group failing
+     *
+     * @throws \ErrorException
      */
     public function removeTestDatabase(): void
     {
@@ -254,7 +313,13 @@ final class SchemaManagerTest extends AbstractUnitTest
             }
         );
 
-        $schemaManager = SchemaManager::constructUsingTestContainer($this->testContainer);
+        $schemaManager = SchemaManager::constructUsingTestContainer(
+            $this->testContainer,
+            null,
+            null,
+            null,
+            Mockery::spy(MigrationsExecutorInterface::class)
+        );
         $schemaManager->removeTestDatabase();
     }
 

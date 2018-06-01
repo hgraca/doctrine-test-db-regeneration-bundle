@@ -130,15 +130,22 @@ trait DbRegenerationPHPUnitEventSubscriberTrait
      */
     private $shouldReuseExistingDbBkp;
 
+    /**
+     * @var array
+     */
+    private $executeMigrations;
+
     public function __construct(
         int $shouldRemoveDbAfterEveryTest = 1,
         int $shouldRegenerateDbOnEveryTest = 1,
         int $shouldReuseExistingDbBkp = 0,
+        array $executeMigrations = [],
         SchemaManagerInterface $schemaManager = null
     ) {
         $this->shouldRemoveDbAfterEveryTest = (bool) $shouldRemoveDbAfterEveryTest;
         $this->shouldRegenerateDbOnEveryTest = (bool) $shouldRegenerateDbOnEveryTest;
         $this->shouldReuseExistingDbBkp = (bool) $shouldReuseExistingDbBkp;
+        $this->executeMigrations = $executeMigrations;
         self::$schemaManager = $schemaManager;
     }
 
@@ -166,6 +173,8 @@ trait DbRegenerationPHPUnitEventSubscriberTrait
      * to add the interface to another test and it
      * ends up using a dirty DB, yielding unreliable results.
      * Its safer but slower though, so we can turn it off if we want to.
+     *
+     * @throws \ErrorException
      */
     public function onEndTest($test): void
     {
@@ -178,6 +187,9 @@ trait DbRegenerationPHPUnitEventSubscriberTrait
         }
     }
 
+    /**
+     * @throws \ErrorException
+     */
     public static function getSchemaManager(): SchemaManagerInterface
     {
         return self::$schemaManager ?? self::$schemaManager = SchemaManager::constructUsingTestContainer();
@@ -203,14 +215,20 @@ trait DbRegenerationPHPUnitEventSubscriberTrait
         $this->hasRestoredTestDatabase = true;
     }
 
+    /**
+     * @throws \ErrorException
+     */
     private function createTestDatabaseBackup(bool $shouldReuseExistingDbBkp = false): void
     {
         $this->switchOffDoctrineTestBundleStaticDriver();
-        $this->getSchemaManager()->createTestDatabaseBackup($shouldReuseExistingDbBkp);
+        $this->getSchemaManager()->createTestDatabaseBackup($shouldReuseExistingDbBkp, $this->executeMigrations);
         $this->createdTestDatabaseBackup();
         $this->switchOnDoctrineTestBundleStaticDriver();
     }
 
+    /**
+     * @throws \ErrorException
+     */
     private function restoreTestDatabase(): void
     {
         $this->getSchemaManager()->restoreTestDatabase();

@@ -28,5 +28,5 @@ fix-cs:
 
 test:
 	composer dumpautoload
-	bin/test
 	bin/fix_cs
+	bin/test

@@ -11,7 +11,10 @@ interface SchemaManagerInterface
 {
     public static function constructUsingTestContainer(TestContainer $testContainer = null): self;
 
-    public function createTestDatabaseBackup(bool $shouldReuseExistingDbBkp = false): void;
+    public function createTestDatabaseBackup(
+        bool $shouldReuseExistingDbBkp = false,
+        array $migrationsToExecute = []
+    ): void;
 
     public function restoreTestDatabase(): void;
 

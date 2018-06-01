@@ -22,6 +22,11 @@ final class SchemaManager implements SchemaManagerInterface
     private $testDbBackupPath;
 
     /**
+     * @var MigrationsExecutorInterface
+     */
+    private $migrationsExecutor;
+
+    /**
      * @var string
      */
     private $databaseFilePath;
@@ -65,6 +70,7 @@ final class SchemaManager implements SchemaManagerInterface
         FixtureList $fixtureList,
         EntityManagerInterface $entityManager,
         string $testDbBackupPath,
+        MigrationsExecutorInterface $migrationsExecutor,
         ?SchemaTool $schemaTool = null,
         ?ORMExecutor $ORMExecutor = null,
         ?ProxyReferenceRepository $referenceRepository = null
@@ -72,17 +78,22 @@ final class SchemaManager implements SchemaManagerInterface
         $this->fixtureList = $fixtureList;
         $this->entityManager = $entityManager;
         $this->testDbBackupPath = $testDbBackupPath;
+        $this->migrationsExecutor = $migrationsExecutor;
         $this->schemaTool = $schemaTool;
         $this->ORMExecutor = $ORMExecutor;
         $this->referenceRepository = $referenceRepository;
         $this->doctrineListenersToggler = new ListenerToggler($this->entityManager->getEventManager());
     }
 
+    /**
+     * @throws \ErrorException
+     */
     public static function constructUsingTestContainer(
         TestContainer $testContainer = null,
         SchemaTool $schemaTool = null,
         ORMExecutor $ORMExecutor = null,
-        ProxyReferenceRepository $referenceRepository = null
+        ProxyReferenceRepository $referenceRepository = null,
+        MigrationsExecutorInterface $migrationsExecutor = null
     ): SchemaManagerInterface {
         $testContainer = $testContainer ?? new TestContainer();
 
@@ -92,6 +103,10 @@ final class SchemaManager implements SchemaManagerInterface
             FixtureList::constructFromFixturesLoader($testContainer->getFixturesLoader()),
             $testContainer->getEntityManager(),
             $testDbBackupPath,
+            $migrationsExecutor ?? new MigrationsExecutor(
+                $testContainer->getContainer(),
+                $testContainer->getEntityManager()->getConnection()
+            ),
             $schemaTool,
             $ORMExecutor,
             $referenceRepository
@@ -102,15 +117,17 @@ final class SchemaManager implements SchemaManagerInterface
      * @throws ToolsException
      * @throws \Exception
      */
-    public function createTestDatabaseBackup(bool $shouldReuseExistingDbBkp = false): void
-    {
+    public function createTestDatabaseBackup(
+        bool $shouldReuseExistingDbBkp = false,
+        array $migrationsToExecute = []
+    ): void {
         $testDbPath = $this->getDatabaseFilePath();
 
         if ($shouldReuseExistingDbBkp && $this->testDatabaseBackupExists($this->testDbBackupPath)) {
             return;
         }
 
-        $this->createBackup($this->testDbBackupPath, $testDbPath);
+        $this->createBackup($this->testDbBackupPath, $testDbPath, ...$migrationsToExecute);
     }
 
     /**
@@ -173,11 +190,13 @@ final class SchemaManager implements SchemaManagerInterface
      * @throws ToolsException
      * @throws ToolsException
      * @throws \ReflectionException
+     * @throws \Doctrine\DBAL\Migrations\MigrationException
      */
-    private function createBackup(string $testDbBackupPath, string $testDbPath): void
+    private function createBackup(string $testDbBackupPath, string $testDbPath, string ...$migrationList): void
     {
         $this->removeTestDatabase();
         $this->createCleanSchema();
+        $this->migrationsExecutor->execute(...$migrationList);
         $this->doctrineListenersToggler->disableListeners();
         $this->loadFixtures();
         $this->doctrineListenersToggler->enableListeners();

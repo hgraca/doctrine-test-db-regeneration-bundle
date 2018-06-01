@@ -34,7 +34,7 @@ final class DbRegenerationPHPUnitEventSubscriberTest extends AbstractUnitTest
         int $expectsToCreateTestDatabaseBackup,
         int $expectsToRestoreTestDatabase
     ): void {
-        $eventSubscriber = new DbRegenerationPHPUnitEventSubscriber(1, $shouldRegenerateDbOnEveryTest, 0, $this->schemaManager);
+        $eventSubscriber = new DbRegenerationPHPUnitEventSubscriber(1, $shouldRegenerateDbOnEveryTest, 0, [], $this->schemaManager);
 
         $this->schemaManager->shouldReceive('createTestDatabaseBackup')->times($expectsToCreateTestDatabaseBackup);
         $this->schemaManager->shouldReceive('restoreTestDatabase')->times($expectsToRestoreTestDatabase);
@@ -61,7 +61,7 @@ final class DbRegenerationPHPUnitEventSubscriberTest extends AbstractUnitTest
         int $shouldRegenerateDbOnEveryTest,
         int $expectsToRemoveTestDatabase
     ): void {
-        $eventSubscriber = new DbRegenerationPHPUnitEventSubscriber(1, $shouldRegenerateDbOnEveryTest, 0, $this->schemaManager);
+        $eventSubscriber = new DbRegenerationPHPUnitEventSubscriber(1, $shouldRegenerateDbOnEveryTest, 0, [], $this->schemaManager);
 
         $this->schemaManager->shouldReceive('removeTestDatabase')->times($expectsToRemoveTestDatabase);
         $eventSubscriber->endTest($this->createTest($isInstanceOfDatabaseAwareTestInterface), 1);

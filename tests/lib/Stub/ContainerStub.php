@@ -99,7 +99,7 @@ final class ContainerStub implements ContainerInterface
     public function getParameter($name)
     {
         if (!isset($this->parameterList[$name])) {
-            throw new InvalidArgumentException();
+            throw new InvalidArgumentException("Can't find a parameter named '$name'");
         }
 
         return $this->parameterList[$name];
