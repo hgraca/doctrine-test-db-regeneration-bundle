@@ -63,6 +63,11 @@ final class TestContainer
         return $this->getServiceLocator()->get($service);
     }
 
+    public function getContainer(): ContainerInterface
+    {
+        return $this->container;
+    }
+
     private function getServiceLocator(): ServiceLocator
     {
         /** @var ServiceLocator $serviceLocator */
@@ -70,11 +75,6 @@ final class TestContainer
             ->get(CreateDbRegenerationServiceLocatorCompilerPass::TEST_DB_REGENERATION_SERVICE_LOCATOR);
 
         return $serviceLocator;
-    }
-
-    private function getContainer(): ContainerInterface
-    {
-        return $this->container;
     }
 
     private function createContainer(): ContainerInterface
