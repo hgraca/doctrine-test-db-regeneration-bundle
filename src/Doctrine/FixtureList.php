@@ -28,10 +28,6 @@ final class FixtureList
      */
     private function __construct(array $metadata, FixtureInterface ...$fixtures)
     {
-        if (empty($fixtures)) {
-            throw new InvalidArgumentException('Fixture list cannot be empty');
-        }
-
         $this->fixtures = $fixtures;
         $this->metadata = $metadata;
     }

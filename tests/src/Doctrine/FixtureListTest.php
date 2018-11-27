@@ -47,15 +47,6 @@ final class FixtureListTest extends AbstractUnitTest
 
     /**
      * @test
-     * @expectedException \InvalidArgumentException
-     */
-    public function constructFromFixturesLoader_throws_exception_if_there_are_no_fixtures(): void
-    {
-        FixtureList::constructFromFixturesLoader($this->loader);
-    }
-
-    /**
-     * @test
      *
      * @throws \ReflectionException
      */
