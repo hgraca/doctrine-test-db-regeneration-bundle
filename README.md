@@ -55,7 +55,7 @@ This last functionality, however, can be disabled so that we can use this bundle
     hgraca_doctrine_test_db_regeneration:
         doctrine_service_id: 'doctrine'
         fixtures_loader_service_id: 'doctrine.fixtures.loader'
-        test_db_bkp_dir: '%kernel.cache_dir%/test.bkp.db'
+        test_db_bkp_path: '%kernel.cache_dir%/test.bkp.db'
         # The list of extra services to add to the container, 
         # in case you want to reuse this already built container.
         extra_service_list: [] 
